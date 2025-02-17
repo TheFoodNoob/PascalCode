@@ -1,262 +1,410 @@
- 
-program LinkedListDefinition;
+program intlist;
 
 uses sysutils;
-type 
-PNode = ^Node; //pointer to a node
-Node = record
-    data: string; //store large numbers
-    next, prev: PNode; 
+
+type
+    PDigit = ^DigitNode;
+    DigitNode = record
+        digit: char;
+        next: PDigit;
+    end;
+
+    PNode = ^Node;
+    Node = record
+        data: string;       // Holds the number as a string representation
+        next, prev: PNode;  // Pointers to next and previous nodes in the outer list
+        digits: PDigit;     // Pointer to the inner linked list representing digits
     end;
 
 var
-    head, tail: PNode; //global pointers for the start and end of a list
+    head, tail, bubbleSortedHead, recursiveBubbleSortedHead: PNode;
+    operationCount, numOperations: Int64; // Count operations for complexity analysis
+    bubbleOperations, recursiveBubbleOperations: Int64;  // To count operations during sorting
 
-// begin
-//     head := nil;
-//     tail := nil;
-//     writeln('Doubly Linked List Defined');
-// end;
-
-procedure Append(value: string);
+// Function to generate large random numbers and store them as linked lists of digits
+function GenerateLargeNumber: PNode;
 var
-    newNode: PNode;
+    numNode: PNode;
+    digitNode, currentDigit: PDigit;
+    length, i: Integer;
 begin
-    //create new node and allocate memory
-    new(newNode);
-    
-if newNode = nil then begin
-    writeln('Memory allocation failed');
-    exit;
+    New(numNode);
+    numNode^.next := nil;
+    numNode^.prev := nil;
+    New(numNode^.digits);  // Initialize the digits linked list
+    numNode^.digits := nil;
+
+    length := Random(256) + 1;  // Random length between 1 and 256
+    currentDigit := nil;
+    for i := 1 to length do
+    begin
+        New(digitNode);
+        digitNode^.digit := chr(Random(10) + 48);  // '0' to '9'
+        digitNode^.next := nil;
+        
+        if numNode^.digits = nil then
+            numNode^.digits := digitNode
+        else
+            currentDigit^.next := digitNode;
+        
+        currentDigit := digitNode;
+    end;
+
+    GenerateLargeNumber := numNode;
 end;
-           
-    newNode^.data := value; //give data the value
-    newNode^.next := nil; // make the arrow next equal to null
-    newNode^.prev := tail; // prev is going to point to the tail as we are going to create a new tail.
 
-    {
-    Node* newNode = new Node; //allocates memory for a new node
-    newNode -> data = value //sets the data
-    newNode -> next = nullptr // initializes next pointer
-    newNode ->prev = tail //set previous pointer to the tail now that a new node is going to be appended
-
-    }
-
-
-    if head = nil then begin
-    //if the list is empty then the new node is both the head and the tail
-    head := newNode;
-    tail := newNode;
+// Procedure to append a new node to the doubly linked list
+procedure Append(value: PNode);
+begin
+    if head = nil then
+    begin
+        head := value;
+        tail := value;
     end
-    else begin
-    //if the list is not empty, update the previous tail's next pointer
-    tail^.next := newNode; // same as tail->next = newNode;
-    tail := newNode; //same as tail = newNode;
+    else
+    begin
+        tail^.next := value;
+        value^.prev := tail;
+        tail := value;
     end;
 end;
 
-function GenerateLargeNumber: string;
+// Function to compare two large numbers represented as linked lists of digits
+function CompareLargeNumbers(num1, num2: PNode): Integer;
 var
-    num: string;
-    i, length: integer;
+    digit1, digit2: PDigit;
+    length1, length2: Integer;
 begin
-    length := Random(256) + 1; //Random length from 1 - 256 digits
-    num := '';
-    //ensure first digit is nonzero
-    num := num +chr(Random(9) + 49); //49 = ASCII '1', ensures first digit is 1-9
+    // Calculate lengths of both numbers by counting the digits
+    length1 := 0;
+    digit1 := num1^.digits;
+    while digit1 <> nil do
+    begin
+        operationCount := operationCount + 1;  // Increment operation count for each comparison
+        Inc(recursiveBubbleOperations);
+        Inc(bubbleOperations);  // Increment for comparison operation
+        Inc(length1);
+        digit1 := digit1^.next;
+    end;
 
-    //generate remaining digits
-    for i := 2 to length do
-        num := num + chr(Random(10)+48); //48 = ASCII '0', ensures digits 0-9
+    length2 := 0;
+    digit2 := num2^.digits;
+    while digit2 <> nil do
+    begin
+        Inc(length2);
+        digit2 := digit2^.next;
+    end;
 
-    GenerateLargeNumber := num;
+    // Compare lengths first
+    if length1 > length2 then
+        Exit(1)
+    else if length1 < length2 then
+        Exit(-1);
+
+    // If lengths are the same, compare digit by digit
+    digit1 := num1^.digits;
+    digit2 := num2^.digits;
+    while (digit1 <> nil) and (digit2 <> nil) do
+    begin
+        if digit1^.digit > digit2^.digit then
+            Exit(1)
+        else if digit1^.digit < digit2^.digit then
+            Exit(-1);
+        
+        digit1 := digit1^.next;
+        digit2 := digit2^.next;
+    end;
+
+    // If we reach here, both numbers are equal
+    Exit(0);
 end;
 
-function CompareLargeNumbers(num1, num2: string): Integer;
+// Function to swap the data of two nodes (swap the contents)
+procedure SwapData(node1, node2: PNode);
+var
+    tempDigits: PDigit;
+    tempData: string;
 begin
-    // If different lengths, the longer number is greater
-    if Length(num1) > Length(num2) then
-        Exit(1)  // num1 is greater
-    else if Length(num1) < Length(num2) then
-        Exit(-1) // num2 is greater
-    else 
-        Exit(CompareStr(num1, num2)); // Lexicographic comparison (only when lengths are equal)
+    // Swap the digits part of the nodes
+    tempDigits := node1^.digits;
+    node1^.digits := node2^.digits;
+    node2^.digits := tempDigits;
+
+    // Swap the data (string representation) of the nodes
+    tempData := node1^.data;
+    node1^.data := node2^.data;
+    node2^.data := tempData;
 end;
 
-
-
+// Iterative Bubble Sort for doubly linked list (O(n²))
 procedure BubbleSort;
 var
     current, nextNode: PNode;
     swapped: Boolean;
-    temp: string;
 begin
-    if head = nil then
-    exit; //if the list is empty, then exit
-    swapped := true;
-    //repeat until no swaps are made
-    while swapped do begin
-    swapped := false;
-    current := head;
-    while current^.next <> nil do begin
-    nextNode := current^.next;
-    //if statement to check if current node is larger than next node, if so, swap
-        if CompareLargeNumbers(current^.data, nextNode^.data) > 0 then begin
-            //swap the data
-            temp := current^.data;
-            current^.data := nextNode^.data;
-            nextNode^.data := temp;
-            //set swapped flag to true
-            swapped := true;
-            
+    if bubbleSortedHead = nil then Exit;
+
+    bubbleOperations := 0;  // Reset operation count
+
+    repeat
+        swapped := False;
+        current := bubbleSortedHead;
+
+        while current^.next <> nil do
+        begin
+            nextNode := current^.next;
+            Inc(bubbleOperations);  // Increment for comparison operation
+            if CompareLargeNumbers(current, nextNode) > 0 then
+            begin
+                Inc(bubbleOperations);  // Increment for swap operation
+                SwapData(current, nextNode);
+                swapped := True;
             end;
-    current := current^.next; //move to the next node
+            current := current^.next;
         end;
-    end;
+    until not swapped;
 end;
 
-
-
-
+// Recursive function to perform one pass of the bubble sort
 procedure RecursiveBubbleSort(current: PNode);
 var
     nextNode: PNode;
-    temp: string;
 begin
     if (current = nil) or (current^.next = nil) then
-    exit; //Base case that exits if empty list or only one node, cause if so it is already sorted
+        exit; // Base case: exit if list is empty or only one element (it's already sorted)
 
     nextNode := current^.next;
-    //First ensure we don't access a null pointer
-    if(nextNode <> nil) and (CompareLargeNumbers(current^.data, nextNode^.data) > 0) then
+    
+    // Increment the operation count for each comparison
+    Inc(recursiveBubbleOperations);  // Increment comparison count
+
+    // First, ensure we don't access a null pointer and compare values
+    if (nextNode <> nil) and (CompareLargeNumbers(current, nextNode) > 0) then
     begin
-        //swapping values
-        temp := current^.data;
-        current^.data := nextNode^.data;
-        nextNode^.data := temp;
+        // Increment the operation count for each swap
+        Inc(recursiveBubbleOperations);  // Increment swap operation count
+
+        // Swap values (data and digits) between the nodes
+        SwapData(current, nextNode);
     end;
-    //move forward in the list
+
+    // Recursively call the function to sort the next pair
     RecursiveBubbleSort(nextNode);
 end;
 
-procedure FullBubbleSort(head: PNode);
+// Function to call the recursive bubble sort for multiple passes through the list
+procedure FullRecursiveBubbleSort(head: PNode);
 var
     i: PNode;
-    begin
-        if (head = nil) or (head^.next = nil) then exit; //empty list or only one node then exit cause already sorted
-        //keep running the recursion until it runs through every element
-        i := head;
-        while i <> nil do
-        begin
-            RecursiveBubbleSort(head); //sorts one pass
-            i := i^.next; //move to the next node sort
-        end;
-
-    end;
-
-
-procedure RemoveDupes; //function to remove nodes with duplicate values
-var
-    current, checkNode, temp: PNode; //define current node and checking node
-    begin
-        current := head; //begin at the first node
-        while current <> nil do begin //while we have not reached the end of the list
-            checkNode := current^.next; 
-            while checkNode <> nil do begin //iterate each check until we reach the end
-                if current^.data = checkNode^.data then begin
-                temp := checkNode; //create temp node to be deleted
-                    checkNode := checkNode^.next; //move node before deletion
-                //remove duplicate node
-                    if temp^.next <> nil then
-                        temp^.next^.prev := temp^.prev; //if removed node has a node next, connect next node to its previous
-                    if temp^.prev <> nil then
-                        temp^.prev^.next := temp^.next; // if removed node has a previous node, connect previous to the next
-                    if temp = tail then begin
-                        tail := temp^.prev;
-                        if tail = nil then
-                            head := nil;
-                    end;
-                    dispose(temp); //deallocate memory of the duplicate node
-                    
-                end
-                else
-                    checkNode := checkNode^.next; //move to the next node to be compared to base node
-               end;
-               current := current^.next; //move to the next node to be compared to all nodes
-            end; 
-        end;
-
-
-
-
-procedure PrintList;
-var
-    current: PNode; //create current node as a placeholder for the current node
 begin
-    current := head; //set current to the beginning/head
-    if current = nil then begin
-    writeln('Error: List is empty.');
-    exit;
+    if (head = nil) or (head^.next = nil) then
+        exit; // Exit if the list is empty or only has one element (already sorted)
+
+    // Reset recursiveBubbleOperations count before starting
+    recursiveBubbleOperations := 0;
+
+    // Keep calling the recursive function for every pass through the list
+    i := head;
+    while i <> nil do
+    begin
+        RecursiveBubbleSort(head); // Perform one pass of sorting
+        i := i^.next; // Move to the next node
     end;
-    while current <> nil do begin //while current != nullptr do this
-        write(current^.data, ' '); //print out data of the current node and then create a space in between output arguments
-        current := current^.next;
-    end;
-    writeln;
 end;
 
-procedure SaveToFile(filename: string);
-var
-    outputFile: Text;
-    current: PNode;
-begin
-    Assign(outputFile, filename); //link file variable to to the actual file
-    Rewrite(outputFile); //open file for writing (this erases previous content)
 
-     if IOResult <> 0 then begin
-        Writeln('Error opening file: ', filename);
+// Function to create a copy of the list
+function CopyList(originalHead: PNode): PNode;
+var
+    copyHead, copyTail, newNode: PNode;
+begin
+    copyHead := nil;
+    copyTail := nil;
+    
+    while originalHead <> nil do
+    begin
+        New(newNode);
+        newNode^.data := originalHead^.data;
+        newNode^.digits := originalHead^.digits;  // Shallow copy of digits (could deep copy if needed)
+        newNode^.next := nil;
+        newNode^.prev := copyTail;
+        
+        if copyTail <> nil then
+            copyTail^.next := newNode
+        else
+            copyHead := newNode;
+        
+        copyTail := newNode;
+        originalHead := originalHead^.next;
+    end;
+    
+    CopyList := copyHead;
+end;
+
+// Procedure to print the linked list recursively
+procedure PrintListRecursive(node: PNode);
+var
+    digit: PDigit;
+begin
+    if node = nil then
+    begin
+        writeln;
         Exit;
     end;
     
+    // Print the digits of the current large number
+    digit := node^.digits;
+    while digit <> nil do
+    begin
+        write(digit^.digit);
+        digit := digit^.next;
+    end;
+    writeln;
+    
+    PrintListRecursive(node^.next);
+end;
+
+// Procedure to save the sorted list and operation counts to a file
+procedure SaveToFile(filename: string; bubbleOperations, recursiveBubbleOperations: Int64; head, bubbleSortedHead, recursiveBubbleSortedHead: PNode);
+var
+    outputFile: Text;
+    current: PNode;
+    digit: PDigit;
+begin
+    Assign(outputFile, filename);
+    Rewrite(outputFile);
+    
+    if IOResult <> 0 then
+    begin
+        Writeln('Error opening file: ', filename);
+        Exit;
+    end;
+
+    // Write the initial unsorted list and operations
+    writeln(outputFile, 'Unsorted List:');
     current := head;
     while current <> nil do
     begin
-        writeln(outputFile, current^.data); //write each number to a file
+        digit := current^.digits;
+        while digit <> nil do
+        begin
+            write(outputFile, digit^.digit);
+            digit := digit^.next;
+        end;
+        writeln(outputFile);
         current := current^.next;
     end;
+    writeln(outputFile, 'Operations during Unsorted List Generation: ', operationCount);
+    writeln(outputFile);  // Empty line to separate sections
 
-    Close(outputFile); //close the file
-
-    if IOResult <> 0 then begin
-        Writeln('Error closing file: ', filename);
+    // Write the results for Bubble Sort
+    writeln(outputFile, 'Bubble Sort Results:');
+    writeln(outputFile, 'Number of Operations: ', bubbleOperations);
+    writeln(outputFile, 'Sorted List (Bubble Sort):');
+    current := bubbleSortedHead;
+    while current <> nil do
+    begin
+        digit := current^.digits;
+        while digit <> nil do
+        begin
+            write(outputFile, digit^.digit);
+            digit := digit^.next;
+        end;
+        writeln(outputFile);
+        current := current^.next;
     end;
+    writeln(outputFile, 'Operations during Bubble Sort: ', bubbleOperations);
+    writeln(outputFile);  // Empty line to separate sections
 
+    
+
+    // Write the results for Recursive Bubble Sort
+    writeln(outputFile, 'Recursive Bubble Sort Results:');
+    writeln(outputFile, 'Number of Operations: ', recursiveBubbleOperations);
+    writeln(outputFile, 'Sorted List (Recursive Bubble Sort):');
+    current := recursiveBubbleSortedHead;
+    while current <> nil do
+    begin
+        digit := current^.digits;
+        while digit <> nil do
+        begin
+            write(outputFile, digit^.digit);
+            digit := digit^.next;
+        end;
+        writeln(outputFile);
+        current := current^.next;
+    end;
+    writeln(outputFile, 'Operations during Recursive Bubble Sort: ', recursiveBubbleOperations);
+    writeln(outputFile);  // Empty line to separate sections
+
+    // Write metadata to file
+    writeln(outputFile, '# of Numbers Generated: ', numOperations);
+    Close(outputFile);
+
+    if IOResult <> 0 then
+        Writeln('Error closing file: ', filename);
 
     Writeln('Sorted list saved to file: ', filename);
 end;
 
+
+
+// Procedure to count operations and generate complexity table
+procedure ComplexityAnalysis(m: Integer; operationCount: Int64);
+begin
+    writeln('M: ', m, ' | Total Operations: ', operationCount);
+end;
+
+var
+    i: Integer;
+    
 begin
     Randomize;
     head := nil;
     tail := nil;
+    operationCount := 0;
 
-    // Generate and append random numbers
-    writeln('Generating random large numbers...');
-    Append(GenerateLargeNumber);
-    Append(GenerateLargeNumber);
-    Append(GenerateLargeNumber);
-    Append(GenerateLargeNumber);
-    Append(GenerateLargeNumber);
+    // Generate a random number of operations (e.g., between 5 and 20)
+    numOperations := Random(151)+10;  //Random(16) // Random number between 10 and 160
+    writeln('Generating ', numOperations, ' random large numbers...');
+
+    // Append a random number of large numbers to the list
+    for i := 1 to numOperations do
+    begin
+        Append(GenerateLargeNumber);
+    end;
+
+    // Complexity analysis after number generation
+    ComplexityAnalysis(numOperations, operationCount);
 
     writeln('Initial List:');
-    PrintList;
+    PrintListRecursive(head);
 
-    // Sort the list
-    writeln('Sorting...');
+     // Create copies of the original list for sorting with bubble sort and recursive bubble sort
+    bubbleSortedHead := CopyList(head);  // Copy for Bubble Sort
+    recursiveBubbleSortedHead := CopyList(head);  // Copy for Recursive Bubble Sort
+
+    // Bubble Sort
+    operationCount := 0;  // Reset operation count before sorting
+    writeln('Bubble Sort...');
     BubbleSort;
+    ComplexityAnalysis(numOperations, operationCount);  // After sorting
+    writeln('Bubble Sorted List:');
+    PrintListRecursive(bubbleSortedHead);
 
-    writeln('Sorted List:');
-    PrintList;
-    SaveToFile('intlist.txt');
+    
 
+    // Recursive Bubble Sort
+    operationCount := 0;  // Reset operation count before sorting
+    writeln('Recursive Bubble Sort...');
+    FullRecursiveBubbleSort(recursiveBubbleSortedHead);
+    ComplexityAnalysis(numOperations, operationCount);  // After sorting
+    writeln('Recursive Bubble Sorted List:');
+    PrintListRecursive(recursiveBubbleSortedHead);
+
+    // Save to file
+    SaveToFile('intlist.txt', bubbleOperations, recursiveBubbleOperations, head, bubbleSortedHead, recursiveBubbleSortedHead);
+
+    // Print final complexity analysis (total operations after all steps)
+    ComplexityAnalysis(numOperations, operationCount); // Final total operations
 end.
