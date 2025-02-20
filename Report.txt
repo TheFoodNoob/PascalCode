@@ -1,0 +1,367 @@
+﻿Question 1 report: (Dustin Dinh)
+intlist.pas
+BubbleSort
+n    m     T(n)   O(g(n))
+
+
+10   19964   O(n^2)  O(n^2) 
+
+
+20   107688  O(n^2)  O(n^2) 
+
+
+40   470056 O(n^2)  O(n^2) 
+
+
+80   1646434 O(n^2)  O(n^2) 
+
+
+160  74497730 O(n^2)  O(n^2) 
+
+
+To derive time complexity, we first have to identify how m grows as n gets bigger.
+Our iterative bubble sort works by repeatedly comparing adjacent nodes and swapping if they are in the wrong order. And this continues until there are no swaps made. Since each pair of adjacent nodes is compared, the algorithm has to make (n-1) comparisons. And after each pass the element at then end becomes sorted making the number of comparisons decrease by 1
+
+Thus, we can derive an equation which is roughly the sum and it looks something like this
+T(n) = (n-1) + (n-2) + … + 1 = ( n (n-1) ) / 2
+And for a large in this would simplify to be T(n) = O(n^2)
+
+
+We chose Dustin’s code for this because he utilizes infinite precision integers with linked lists
+
+
+RecursiveBubbleSort
+n    m     T(n)   O(g(n))
+
+
+10   11667   O(n^2)  O(n^2) 
+
+
+20   59091  O(n^2)  O(n^2) 
+
+
+40   249164 O(n^2)  O(n^2) 
+
+
+80   915549 O(n^2)  O(n^2) 
+
+
+160  3888612 O(n^2)  O(n^2) 
+
+
+
+
+Recursive bubble sort is also very similar in regards to the first iterative bubble sort, the main difference is that it processes one pair of nodes at a time and then recurses to handle the rest
+For this it also does (n-1) comparison and (n-2) and so on. 
+So we can say the total comparisons is equal to the sums
+T(n) = (n(n-1)) / 2 , thus when n goes to infinity we can determine that the time complexity would look something like T(n) = O(n^2)
+
+
+ 
+
+
+
+
+﻿
+
+
+
+
+
+
+
+
+Question 2 report: (John Abou Elias)
+AddInfiniteIntegers
+n    m     T(n)   O(g(n))
+
+
+10   10    O(n)  O(n+m) 
+
+
+20   20   O(n)  O(n+m) 
+
+
+40   40  O(n)  O(n+m) 
+
+
+80   80  O(n)  O(n+m) 
+
+
+160  160  O(n)  O(n+m) 
+
+
+The AddInfiniteIntegers function adds two numbers stored as linked lists, where each node holds a single digit, with the least significant digit at the head. To start, the function traverses both lists to move the pointers to the least significant digit of each number. This is done with two while loops, each running in O(n + m) time, where n and m represent the lengths of the two lists.
+
+
+After positioning the pointers, the main loop performs the addition. It continues until all digits are processed and any remaining carry is added. The sum of the corresponding digits and the carry is calculated in each iteration. The carry is updated by dividing the sum by 10, and the current digit is extracted by taking the sum modulo 10. A new node is created for the resulting digit and added to the result list. The loop runs in O(max(n, m)) time, as it processes each list in parallel.
+
+
+Therefore, the overall time complexity of the function is O(n + m), with both the initial traversal of the lists and the addition process.
+
+
+SlowIsPrime
+
+
+n    m     T(n)   O(g(n))
+
+
+10   3    O(sqrt(n))  O(sqrt(n)) 
+
+
+20   4   O(sqrt(n))  O(sqrt(n)) 
+
+
+40   8 O(sqrt(n))  O(sqrt(n)) 
+
+
+80   9  O(sqrt(n))  O(sqrt(n)) 
+
+
+160 12 O(sqrt(n))  O(sqrt(n)) 
+
+
+IsPrime
+
+
+n    m     T(n)   O(g(n))
+
+
+10   10    O(k * sqrt(n)/3)  O(k * sqrt(n)/3) 
+
+
+20   20   O(k * sqrt(n)/3)  O(k * sqrt(n)/3)
+
+
+40   40  O(k * sqrt(n)/3)  O(k * sqrt(n)/3)
+
+
+80   80  O(k * sqrt(n)/3) O(k * sqrt(n)/3)
+
+
+160  160  O(k * sqrt(n)/3)  O(k * sqrt(n)/3)
+Where k = 
+
+
+
+
+
+
+
+
+
+
+Question 3 report: (Bryan Ly)
+Question 3 Report:
+
+
+Bubble sort has a nest loop of 0 to n - 1 and 0 to n - i - 1 (nested) and will loop through this regardless if the list is already sorted or unsorted thus Θ(n^2) and O(n^2)
+
+
+Bubble Sort:
+n       m        Θ   Big O
+10      108                                               
+
+
+100     12081                                                      
+
+
+1000    1249425                                          
+
+
+2000    5019793                                                                                                                                    
+
+
+4000    19892151                                                          
+
+
+8000    80195296                                                                   
+
+
+Insertion sort has a for loop of n - 1, theres then a while comparison loop that takes i (found from the for loop) to i - n - 1, where worse case scenario becomes O(n^2) but best case it would take O(1) time making best case scenario of a already sorted list being just n or Θ(n)
+
+
+Insertion Sort:
+n       m        Θ   Big O
+10     60                                                
+
+
+100    4952                                                       
+
+
+1000   501948                                           
+
+
+2000   2017860                                                                                                                                     
+
+
+4000   7937432                                                           
+
+
+8000   32148862                                                                    
+
+
+Merge sort starts splits the array in half with O(1) time where it becomes n/2, this is done recursive for log(n). The combination of these then is O(n) and doesn't change for worst or best case scenarios making O(n log(n) ) and Θ(n log(n) )
+
+
+Merge Sort:
+n       m        Θ   Big O
+10      93                                              
+        
+100     1883                                                      
+
+
+1000    28649                                          
+
+
+2000    63300                                                                                                                                    
+
+
+4000    138644                                                          
+
+
+8000    301284                                                                   
+
+
+
+
+
+
+Quick Sort Hoare's Sort:
+n       m        Θ   Big O
+10      90                                               
+
+
+100     1589                                                      
+
+
+1000    23994                                          
+
+
+2000    51693                                                                                                                                    
+
+
+4000    110881                                                          
+
+
+8000    241201                                                                   
+                  
+                                  
+                                  
+Quick Sort Median of 3 Pivot Sort:
+n       m        Θ   Big O
+10      123                                               
+
+
+100     2013                                                      
+
+
+1000    26722                                          
+
+
+2000    56423                                                                                                                                    
+
+
+4000    122226                                                          
+
+
+8000    260365                                                                                                     
+
+
+
+
+
+
+
+
+
+
+Question 4 report: (Muhammad Wajeeh)
+
+
+n    m     T(n)   O(g(n))
+
+
+10   69    O(n^2)  O(n^2) 
+
+
+20   296   O(n^2)  O(n^2) 
+
+
+40   1210  O(n^2)  O(n^2) 
+
+
+80   4869  O(n^2)  O(n^2) 
+
+
+160  19292  O(n^2)  O(n^2) 
+
+
+
+
+
+
+Deriving T(n):
+
+
+
+
+The program consists of 2 parts
+
+
+
+
+1. The Sorting Portion, this sorts the array to prep it for searching
+2. The Searching portion, this is where we search the array for the 10 keys and get the range in which they occur. 
+
+
+
+
+This means that the sorting portion only happens 1 time, as there is only need for one sort of the array. On the other hand, we search the array 10 times since there are 10 keys to search for. 
+
+
+
+
+T(n) = Tsort(n) + 10*Tsearch(n) 
+
+
+
+
+
+
+
+
+The sort used in our program is Bubble Sort which is known to have a time complexity of n^2, but let’s verify this: 
+
+
+
+
+* Our bubble sort uses a nested loop , going from 0 to n-2 and 0 to n-i-2.
+* This means that we need to run the operation inside the bubble sort at worst n-2 * n-i-2 times. 
+   * It should also be noted that the operations inside the loops are constant
+* As far as we are concerned this is ~ n^2 times. 
+* So Tsort = O(c*n^2), c is constant, so basically just = O(n^2)
+
+
+
+
+Now lets look at the Search portion of our program which is actually done in 2 ways, Linear search and binary search. 
+
+
+
+
+* Our linear search is recursive and passes each new index into a new call of the function and simply checks if we found the key. This results in a worse case of n.
+* That being said we must do it 10 times for the 10 different keys so the Tlinearsearch(n) = 10* O(c*n) = O(n)
+* As for our binary search, it is also recursive however it splits the the search area in half with each recursive call which results in a worse case of n
+* Again, we must do this 10 times
+* Tbinarysearch(n) = 10 * O(c*log(n)) = O(logn) 
+
+
+
+
+Finally 
+* T(n) = O(n^2) + O(logn) + O(n) = O(n^2)
+* This occurs since O(n^2) dominates
+
+
+—----------------------------------------------------------------------------------------------------------------------------

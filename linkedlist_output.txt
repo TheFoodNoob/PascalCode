@@ -1,0 +1,10 @@
+Unsorted List:
+30 59 56 99 71 28 25 93 27 17 1 18 82 45 11 9 94 
+Bubble Sorted List:
+1 9 11 17 18 25 27 28 30 45 56 59 71 82 93 94 99 
+Insertion Sorted List:
+1 9 11 17 18 25 27 28 30 45 56 59 71 82 93 94 99 
+QuickSort (Iterative, Hoare Partition) Sorted List:
+1 9 11 17 18 25 27 28 30 45 56 59 71 82 93 94 99 
+QuickSort (Recursive, Hoare Partition) Sorted List:
+1 9 11 17 18 25 27 28 30 45 56 59 71 82 93 94 99 

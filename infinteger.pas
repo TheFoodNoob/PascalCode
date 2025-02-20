@@ -10,9 +10,11 @@ type
   end;
 
 var
-   head1, tail1, head2, tail2, headSum, tailSum: PNode;  // Pointers for the numbers and sum
+   head1, tail1, head2, tail2, headSum, tailSum: PNode;
+   fastPrimeOperations, slowPrimeOperations: Int64;  // Counters for operations
+   digitCount: Integer;  // Number of digits for the current test
 
-// Function to append a digit to the doubly linked list
+// Append a digit to the linked list (used for number storage)
 procedure AppendDigit(value: integer; var head, tail: PNode);
 var
   newNode: PNode;
@@ -30,7 +32,7 @@ begin
   tail := newNode;
 end;
 
-// Function to prepend a digit to the front of the doubly linked list
+// Prepend a digit (used to store sum result)
 procedure PrependDigit(value: integer; var head, tail: PNode);
 var
   newNode: PNode;
@@ -43,13 +45,12 @@ begin
   if head <> nil then
     head^.prev := newNode
   else
-    tail := newNode; // If list was empty, set tail too
+    tail := newNode;
   
   head := newNode;
 end;
 
-
-// Main logic for adding two "infinite" numbers
+// Adding two large numbers using linked lists
 procedure AddNumbers(tail1, tail2: PNode; var headSum, tailSum: PNode);
 var
   carry, digit1, digit2, digitSum: integer;
@@ -61,64 +62,52 @@ begin
   headSum := nil;
   tailSum := nil;
 
-  // Traverse both lists from the tail to the head
   while (current1 <> nil) or (current2 <> nil) or (carry <> 0) do
   begin
-    // Get the current digits (if list is shorter, treat as 0)
+    digit1 := 0; 
+    digit2 := 0;
+
     if current1 <> nil then
     begin
       digit1 := current1^.data;
-      current1 := current1^.prev; // Move to previous node
-    end
-    else
-      digit1 := 0;
+      current1 := current1^.prev; 
+    end;
 
     if current2 <> nil then
     begin
       digit2 := current2^.data;
-      current2 := current2^.prev; // Move to previous node
-    end
-    else
-      digit2 := 0;
+      current2 := current2^.prev; 
+    end;
 
-    // Compute sum and carry
+    // Compute sum
     digitSum := digit1 + digit2 + carry;
-    carry := digitSum div 10;  // Extract new carry
-    digitSum := digitSum mod 10;  // Keep only last digit
+    carry := digitSum div 10;
+    digitSum := digitSum mod 10;
 
     // Add this digit to the front of the sum list
     PrependDigit(digitSum, headSum, tailSum);
-
   end;
 end;
 
-
-// Function to print a large number from the linked list (skip leading zeros)
-procedure PrintNumber(num: PNode);
+// Convert linked list to string representation
+function GetNumberAsString(num: PNode): AnsiString;
 var
   current: PNode;
-  leadingZero: boolean;
+  result: string;
 begin
+  result := '';
   current := num;
-  leadingZero := true; // Flag to skip leading zeros
-
+  
   while current <> nil do
   begin
-    // Skip leading zeros
-    if leadingZero and (current^.data = 0) then
-    begin
-      current := current^.next; // Move to the next node
-      continue;  // Skip printing the zero
-    end;
-
-    leadingZero := false; // After the first non-zero digit, we print all digits
-    write(current^.data); // Print the digit
-    current := current^.next; // Move to the next node
+    result := result + IntToStr(current^.data);
+    current := current^.next;
   end;
-  writeln; // Newline after the number
+
+  GetNumberAsString := result;
 end;
 
-// Function to compute Modulo of a large number represented by a linked list
+// Compute Modulo for large number stored in linked list
 function ModuloLinkedList(const num: PNode; divisor: Integer): Integer;
 var
   current: PNode;
@@ -127,160 +116,250 @@ begin
   result := 0;
   current := num;
   
-  // Process each digit in the linked list
   while current <> nil do
   begin
-    result := (result * 10 + current^.data) mod divisor; // Incrementally build the number's mod value
+    slowPrimeOperations := slowPrimeOperations + 1;
+    result := (result * 10 + current^.data) mod divisor;
     current := current^.next;
   end;
 
-  ModuloLinkedList := result; // Return the final result modulo divisor
+  ModuloLinkedList := result;
 end;
 
-// Function to check if a number represented by a linked list is prime
-function IsPrimeLinkedList(const num: PNode): Boolean;
+// **SLOW Prime Checking (Full Trial Division)**
+function IsPrimeSlowLinkedList(const num: PNode): Boolean;
 var
-  i, modResult: Integer;
+  i: Integer;
 begin
-  // Special cases: 0, 1, and even numbers are not prime
-  if (ModuloLinkedList(num, 2) = 0) then
+  writeln('Checking divisibility for slow prime check...');
+  
+  slowPrimeOperations := slowPrimeOperations + 1;  // Divisibility check for 2
+  writeln('Checking divisibility by 2...');
+  if ModuloLinkedList(num, 2) = 0 then
+    Exit(False);
+  
+  slowPrimeOperations := slowPrimeOperations + 1;  // Divisibility check for 3
+  writeln('Checking divisibility by 3...');
+  if ModuloLinkedList(num, 3) = 0 then
     Exit(False);
 
-  // Check divisibility up to a reasonable limit (e.g., 1000)
-  for i := 3 to 1000 do
+  // Check divisibility up to 10,000 (higher range than fast check)
+  i := 5;
+  while i <= 10000 do
   begin
-    modResult := ModuloLinkedList(num, i);
-    if modResult = 0 then
-      Exit(False); // If divisible by any number, it's not prime
+    slowPrimeOperations := slowPrimeOperations + 1;  // Each divisibility check
+    if ModuloLinkedList(num, i) = 0 then
+      Exit(False);
+    i := i + 2; // Skip even numbers
   end;
 
-  // If no divisors found, the number is prime
-  IsPrimeLinkedList := True;
+  Exit(True);
 end;
 
-// Function to generate a random large number as a linked list
-procedure GenerateRandomNumber(var head, tail: PNode);
+// Rename the ModuloLinkedList function to avoid name conflict
+function ModuloLinkedListLarge(const num: PNode; divisor: Int64): Integer;
 var
-  length, i, digit: integer;
+  current: PNode;
+  result: Integer;
 begin
-  // Generate a random length between 1 and 256
-  length := Random(256) + 1;
-  for i := 1 to length do
+  result := 0;
+  current := num;
+  
+  while current <> nil do
   begin
-    digit := Random(10);  // Random digit between 0 and 9
+    fastPrimeOperations := fastPrimeOperations + 1;
+    result := (result * 10 + current^.data) mod divisor;
+    current := current^.next;
+  end;
+
+  ModuloLinkedListLarge := result;
+end;
+
+// Change the divisor to a larger number and handle larger ranges
+function IsPrimeFastLinkedList(const num: PNode): Boolean;
+var
+  i, numValue, square: Integer;
+begin
+  numValue := ModuloLinkedListLarge(num, 100000);  // Use larger divisor to get the full value
+  
+  // Handle small number cases
+  fastPrimeOperations := fastPrimeOperations + 1;
+  if numValue < 2 then
+    Exit(False);
+
+  writeln('Checking divisibility for fast prime check...');
+  
+  // Check divisibility by perfect squares up to sqrt(n)
+  i := 1;
+  while (i * i) <= numValue do
+  begin
+    fastPrimeOperations := fastPrimeOperations + 1;
+    square := i * i;
+    
+    writeln('Checking square ', square, '...');  // Debug print statement for each square check
+    
+    // If numValue is divisible by the perfect square, it's not prime
+    fastPrimeOperations := fastPrimeOperations + 1;
+    if numValue mod square = 0 then
+      Exit(False);
+    
+    i := i + 1;
+  end;
+
+  IsPrimeFastLinkedList := True;
+end;
+
+// Generate a fixed size large number (e.g., 20 digits)
+procedure GenerateFixedSizeNumber(var head, tail: PNode; size: Integer);
+var
+  i, digit: integer;
+begin
+  for i := 1 to size do
+  begin
+    digit := Random(10);  // Generate a random digit between 0 and 9
     AppendDigit(digit, head, tail);
   end;
 end;
 
-procedure SaveToFile(filename: string; output: AnsiString);
+// Save results to a file (overwrite)
+procedure SaveNewRunToFile(filename: string; output: AnsiString);
 var
     outputFile: Text;
 begin
-    Assign(outputFile, filename); // Link file variable to the actual file
-    Rewrite(outputFile); // Open file for writing (this erases previous content)
-
+    Assign(outputFile, filename);
+    Rewrite(outputFile);  // Overwrite the file for the new run
     if IOResult <> 0 then 
     begin
         Writeln('Error opening file: ', filename);
         Exit;
     end;
 
-    // Write the gathered output string to the file
     writeln(outputFile, output);
+    Close(outputFile);
 
-    Close(outputFile); // Close the file
+    Writeln('Starting new run. Output saved to file: ', filename);
+end;
 
+// Save iteration results to a file (append)
+procedure AppendIterationToFile(filename: string; output: AnsiString);
+var
+    outputFile: Text;
+begin
+    Assign(outputFile, filename);
+    Append(outputFile);  // Append the output to the existing file
     if IOResult <> 0 then 
     begin
-        Writeln('Error closing file: ', filename);
+        Writeln('Error opening file: ', filename);
+        Exit;
     end;
 
-    Writeln('Output saved to file: ', filename);
+    writeln(outputFile, output);
+    Close(outputFile);
+
+    Writeln('Iteration result appended to file: ', filename);
 end;
 
-function GetNumberAsString(num: PNode): AnsiString;
+// Procedure to free the linked list
+procedure FreeLinkedList(var head: PNode);
 var
-  current: PNode;
-  result: string;
-  leadingZero: boolean;
+  current, temp: PNode;
 begin
-  result := '';
-  current := num;
-  leadingZero := true; // Flag to skip leading zeros
-
+  current := head;
+  
+  // Traverse the list and free each node
   while current <> nil do
   begin
-    // Skip leading zeros
-    if leadingZero and (current^.data = 0) then
-    begin
-      current := current^.next; // Move to the next node
-      continue;  // Skip printing the zero
-    end;
-
-    leadingZero := false; // After the first non-zero digit, we print all digits
-    result := result + IntToStr(current^.data); // Append to result string
-    current := current^.next; // Move to the next node
+    temp := current;
+    current := current^.next;
+    Dispose(temp);  // Deallocate memory for the node
   end;
+  
+  head := nil;  // Ensure the head pointer is nil after freeing the list
+end;
 
-  GetNumberAsString := result; // Return the number as a string
+// Recursive function to print the linked list to the file
+procedure PrintLinkedListToFile(const num: PNode; var outputFile: Text);
+begin
+  if num <> nil then
+  begin
+    // Write the current digit to the file
+    Write(outputFile, IntToStr(num^.data));
+    
+    // Recursively call for the next node
+    PrintLinkedListToFile(num^.next, outputFile);
+  end;
 end;
 
 
-
-// Main program logic
-var
-  output: AnsiString;
+// Main program execution
+var 
+  outputFile: Text;
 begin
   Randomize;
-  head1 := nil;
-  tail1 := nil;
-  head2 := nil;
-  tail2 := nil;
-  headSum := nil;
-  tailSum := nil;
 
-  // Generate two random large numbers with random length (up to 256 digits)
-  writeln('Generating random number 1...');
-  GenerateRandomNumber(head1, tail1);  // Random length (1-256 digits)
-  writeln('Generating random number 2...');
-  GenerateRandomNumber(head2, tail2);  // Random length (1-256 digits)
+  // Start new run and overwrite the file with an initial message
+  SaveNewRunToFile('infinteger.txt', 'Starting a test with a fixed number of digits.' + sLineBreak);
   
-  // Gather the output for the first number
-  output := 'Number 1: ';
-  output := output + GetNumberAsString(head1) + sLineBreak;
+  // Only process one set of numbers
+  digitCount := 10;  // You can change this value to test with different sizes
+  
+  head1 := nil; tail1 := nil;
+  head2 := nil; tail2 := nil;
+  headSum := nil; tailSum := nil;
+  fastPrimeOperations := 0;  // Initialize counters
+  slowPrimeOperations := 0;  // Initialize counters
 
-  // Gather the output for the second number
-  output := output + 'Number 2: ';
-  output := output + GetNumberAsString(head2) + sLineBreak;
+  // Generate numbers with digitCount digits
+  writeln('Generating fixed-size number with ', digitCount, ' digits...');
+  GenerateFixedSizeNumber(head1, tail1, digitCount);
+  GenerateFixedSizeNumber(head2, tail2, digitCount);
 
-  // Add the numbers and store the result in the sum linked list
+  // Open the file to write the output
+  Assign(outputFile, 'infinteger.txt');
+  Append(outputFile);  // Append the output to the existing file
+  
+  // Output the numbers by printing them to the file
+  writeln(outputFile, 'Number 1 (Digits: ', IntToStr(digitCount), '): ');
+  PrintLinkedListToFile(head1, outputFile);
+  writeln(outputFile);  // Print a newline
+  
+  writeln(outputFile, 'Number 2 (Digits: ', IntToStr(digitCount), '): ');
+  PrintLinkedListToFile(head2, outputFile);
+  writeln(outputFile);  // Print a newline
+
+  // Perform addition
   AddNumbers(tail1, tail2, headSum, tailSum);
 
-  // Gather the output for the sum
-  output := output + 'Sum: ';
-  output := output + GetNumberAsString(headSum) + sLineBreak;
+  // Output the sum
+  writeln(outputFile, 'Sum: ');
+  PrintLinkedListToFile(headSum, outputFile);
+  writeln(outputFile);  // Print a newline
 
-  // Test if the sum is prime
-  if IsPrimeLinkedList(headSum) then
-    output := output + 'The sum is prime.' + sLineBreak
+  // Fast Prime Check (Square Root Method)
+  if IsPrimeFastLinkedList(headSum) then
+    writeln(outputFile, 'Sum is prime (Fast Check).')
   else
-    output := output + 'The sum is not prime.' + sLineBreak;
+    writeln(outputFile, 'Sum is not prime (Fast Check).');
 
+  // Slow Prime Check (Divisibility Test)
+  if IsPrimeSlowLinkedList(headSum) then
+    writeln(outputFile, 'Sum is prime (Slow Check).')
+  else
+    writeln(outputFile, 'Sum is not prime (Slow Check).');
 
-// writeln('Number 1: ', GetNumberAsString(head1));
-// writeln('Number 2: ', GetNumberAsString(head2));
-// writeln('Sum: ', GetNumberAsString(headSum));
+  // Output operation counts
+  writeln(outputFile, 'Fast Prime Check Operations: ', IntToStr(fastPrimeOperations));
+  writeln(outputFile, 'Slow Prime Check Operations: ', IntToStr(slowPrimeOperations));
 
-// if IsPrimeLinkedList(headSum) then
-//   writeln('The sum is prime.')
-// else
-//   writeln('The sum is not prime.');
+  // Close the file after finishing
+  Close(outputFile);
 
+  writeln('Test completed and results saved.');
 
-
-writeln(output);  // Check the output before saving to the file
-
-
-  // Save all output to the file
-  SaveToFile('infinteger.txt', output);
+  // Free memory for linked lists
+  FreeLinkedList(head1);
+  FreeLinkedList(head2);
+  FreeLinkedList(headSum);
 end.
+
+
