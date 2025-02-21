@@ -89,23 +89,23 @@ begin
   end;
 end;
 
-// Convert linked list to string representation
-function GetNumberAsString(num: PNode): AnsiString;
-var
-  current: PNode;
-  result: string;
-begin
-  result := '';
-  current := num;
+// // Convert linked list to string representation
+// function GetNumberAsString(num: PNode): AnsiString;
+// var
+//   current: PNode;
+//   result: string;
+// begin
+//   result := '';
+//   current := num;
   
-  while current <> nil do
-  begin
-    result := result + IntToStr(current^.data);
-    current := current^.next;
-  end;
+//   while current <> nil do
+//   begin
+//     result := result + IntToStr(current^.data);
+//     current := current^.next;
+//   end;
 
-  GetNumberAsString := result;
-end;
+//   GetNumberAsString := result;
+// end;
 
 // Compute Modulo for large number stored in linked list
 function ModuloLinkedList(const num: PNode; divisor: Integer): Integer;

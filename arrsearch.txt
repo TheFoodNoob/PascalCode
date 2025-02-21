@@ -1,18 +1,18 @@
-Total Search Operations: 19171
+Total Search Operations: 12720
 ==========================
 Search Results:
 ---------------
-Key 61: Found in range [22, 23]
-Key 158: Found in range [53, 53]
-Key 41: Found in range [10, 10]
-Key 357: Found in range [115, 115]
-Key 472: Found in range [149, 149]
-Key 272: Found in range [90, 90]
-Key 289: Found in range [98, 98]
-Key 182: Found in range [59, 59]
-Key 63: Found in range [24, 24]
-Key 287: Found in range [97, 97]
+Key 289: Found in range [88, 89]
+Key 47: Found in range [15, 15]
+Key 319: Found in range [98, 99]
+Key 458: Found in range [147, 148]
+Key 466: Found in range [152, 152]
+Key 86: Found in range [26, 27]
+Key 61: Found in range [18, 18]
+Key 35: Found in range [13, 13]
+Key 271: Found in range [79, 79]
+Key 413: Found in range [139, 139]
 ==========================
 Time Complexity Analysis:
 -------------------------
-n: 160 Operations: 20874 T(n): O(n^2)  O(g(n)): O(n^2)
+n: 160 Operations: 14417

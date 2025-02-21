@@ -1,12 +1,12 @@
 Starting a test with a fixed number of digits.
 
 Number 1 (Digits: 10): 
-3935428301
+4391735001
 Number 2 (Digits: 10): 
-4306216271
+2164450537
 Sum: 
-8241644572
+6556185538
 Sum is not prime (Fast Check).
 Sum is not prime (Slow Check).
-Fast Prime Check Operations: 13
+Fast Prime Check Operations: 11
 Slow Prime Check Operations: 11

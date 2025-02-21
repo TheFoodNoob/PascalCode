@@ -349,7 +349,7 @@ end;
 
 
 
-// Procedure to count operations and generate complexity table
+// Procedure to count operations
 procedure ComplexityAnalysis(m: Integer; operationCount: Int64);
 begin
     writeln('M: ', m, ' | Total Operations: ', operationCount);

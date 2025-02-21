@@ -1,136 +1,192 @@
-program RecursiveBinarySearchExample;
-
-uses
-  SysUtils;
+program ArrSearch;
+uses SysUtils;
 
 const
-  MAX_SIZE = 10;  
-  OUTPUT_FILE = 'arrsearch.txt';
+  SIZE = 160;
+  NUMOFKEYS = 10;
 
 type
-  TArray = array[1..MAX_SIZE] of Integer;
-  TRange = array[1..2] of Integer;  // Stores [first index, last index]
+  IntArray = array of Integer;
 
-// Recursive function to find the first occurrence of the key
-function FindFirst(A: TArray; low, high, key: Integer): Integer;
+var
+  m: Integer;  
+
+{ Recursive Linear Search }
+procedure recLineSearch(arr: IntArray; key, index: Integer; var result: array of Integer);
+begin
+    if index >= Length(arr) then 
+        Exit;
+    
+    m := m + 1;
+
+    if arr[index] = key then
+    begin
+        if result[0] = -1 then
+            result[0] := index
+        else  
+            result[1] := index;
+    end;
+    
+    recLineSearch(arr, key, index+1, result);
+end;
+
+{ Recursive Binary Search }
+procedure recBinSearch(arr: IntArray; key, left, right: Integer; var result: array of Integer);
 var 
-mid: Integer;
+    mid: Integer;
 begin
-  if low > high then
-    Exit(-1);  // Key not found
+    if left > right then Exit;
+    
+    mid := (left + right) div 2;
+    m := m + 1;
 
-  // Middle index
-  mid := (low + high) div 2;
-
-  if (A[mid] = key) and ((mid = 1) or (A[mid - 1] <> key)) then
-    Exit(mid)  // First occurrence found
-  else if A[mid] < key then
-    Exit(FindFirst(A, mid + 1, high, key))  // Search right
-  else
-    Exit(FindFirst(A, low, mid - 1, key));  // Search left
+    if arr[mid] = key then
+    begin
+        if result[0] = -1 then result[0] := mid;
+        result[1] := mid;
+        recBinSearch(arr, key, left, mid-1, result);
+        recBinSearch(arr, key, mid+1, right, result);
+    end
+    else if arr[mid] < key then
+        recBinSearch(arr, key, mid+1, right, result)
+    else 
+        recBinSearch(arr, key, left, mid-1, result);
 end;
 
-// Recursive function to find the last occurrence of the key
-function FindLast(A: TArray; low, high, key: Integer): Integer;
-var 
-mid: Integer;
-begin
-  if low > high then
-    Exit(-1);
-
-  mid := (low + high) div 2;
-
-  if (A[mid] = key) and ((mid = MAX_SIZE) or (A[mid + 1] <> key)) then
-    Exit(mid)  // Last occurrence found
-  else if A[mid] > key then
-    Exit(FindLast(A, low, mid - 1, key))  // Search left
-  else
-    Exit(FindLast(A, mid + 1, high, key));  // Search right
-end;
-
-// Wrapper function to find both first and last occurrences
-function RecursiveBinarySearch(A: TArray; n, key: Integer): TRange;
-begin
-  RecursiveBinarySearch[1] := FindFirst(A, 1, n, key);
-  RecursiveBinarySearch[2] := FindLast(A, 1, n, key);
-end;
-
-// Generate a random sorted array
-procedure GenerateSortedArray(var A: TArray; n: Integer);
+{ Selection Sort - Sorting using Linear Search principles }
+procedure SelectionSort(var arr: IntArray);
 var
-  i, temp: Integer;
-  swapped: Boolean;
-  
+  i, j, minIdx, temp, n: Integer;
 begin
-  for i := 1 to n do
-    A[i] := Random(10);  // Numbers between 0-9 for duplicates
-  
-  // Sort array (using simple Bubble Sort for now)
-   
-  repeat
-    swapped := False;
-    for i := 1 to n - 1 do
-      if A[i] > A[i + 1] then
-      begin
-        temp := A[i];
-        A[i] := A[i + 1];
-        A[i + 1] := temp;
-        swapped := True;
-      end;
-  until not swapped;
+  n := Length(arr);
+  for i := 0 to n - 2 do
+  begin
+    minIdx := i;
+    for j := i + 1 to n - 1 do
+    begin
+      m := m + 1;
+      if arr[j] < arr[minIdx] then
+        minIdx := j;
+    end;
+    if minIdx <> i then
+    begin
+      temp := arr[i];
+      arr[i] := arr[minIdx];
+      arr[minIdx] := temp;
+    end;
+  end;
 end;
 
-// Write results to file
-procedure WriteResultsToFile(A: TArray; n, key: Integer; range: TRange);
+{ Binary Insertion Sort - Sorting using Binary Search }
+function BinarySearchPosition(arr: IntArray; item, left, right: Integer): Integer;
 var
-  f: Text;
+  mid: Integer;
+begin
+  while left <= right do
+  begin
+    mid := (left + right) div 2;
+    m := m + 1;
+    if arr[mid] < item then
+      left := mid + 1
+    else
+      right := mid - 1;
+  end;
+  BinarySearchPosition := left;
+end;
+
+procedure BinaryInsertionSort(var arr: IntArray);
+var
+  i, j, selected, pos: Integer;
+begin
+  for i := 1 to Length(arr) - 1 do
+  begin
+    selected := arr[i];
+    pos := BinarySearchPosition(arr, selected, 0, i - 1);
+    
+    for j := i downto pos + 1 do
+      arr[j] := arr[j - 1];
+    
+    arr[pos] := selected;
+  end;
+end;
+
+{ Generate Random Array }
+procedure genArray(var myarray: IntArray; size, maxValue: Integer);
+var
   i: Integer;
-begin
-  Assign(f, OUTPUT_FILE);
-  Rewrite(f);
-  
-  Write(f, 'Sorted Array: ');
-  for i := 1 to n do
-    Write(f, A[i], ' ');
-  Writeln(f);
-  
-  Writeln(f, 'Searching for key: ', key);
-  if range[1] <> -1 then
-    Writeln(f, 'Key found at indices: [', range[1], ', ', range[2], ']')
-  else
-    Writeln(f, 'Key not found.');
-
-  Close(f);
-end;
-
-var
-  A: TArray;
-  key: Integer;
-  range: TRange;
-  i: Integer;
-
 begin
   Randomize;
-  GenerateSortedArray(A, MAX_SIZE);  // Generate and sort the array
+  SetLength(myarray, size);
+  for i := 0 to size - 1 do
+    myarray[i] := Random(maxValue);
+end;
 
-  key := Random(10);  // Pick a random key to search for
-  Writeln('Searching for key: ', key);
+{ Generate Random Keys }
+procedure genKeys(var keys: IntArray; count, maxValue: Integer);
+var
+  i: Integer;
+begin
+  Randomize;
+  SetLength(keys, count);
+  for i := 0 to count - 1 do
+    keys[i] := Random(maxValue);
+end;
 
-  range := RecursiveBinarySearch(A, MAX_SIZE, key);
+{ Print Array to Console }
+procedure printArrayToConsole(myarray: IntArray);
+var
+  i: Integer;
+begin
+  if Length(myarray) <= 256 then
+  begin
+    for i := 0 to Length(myarray) - 1 do
+      Write(myarray[i], ' ');
+    WriteLn;
+  end;
+end;
 
-  // Write results to file
-  WriteResultsToFile(A, MAX_SIZE, key, range);
+{ Write to File }
+procedure writeToFile(filename: string; keys, myarray: IntArray);
+var
+  myTextFile: TextFile;
+  i: Integer;
+  result: array[0..1] of Integer;
+begin
+  Assign(myTextFile, filename);
+  Rewrite(myTextFile);
 
-  // Display results on console
-  Writeln('Sorted Array: ');
-  for i := 1 to MAX_SIZE do
-    Write(A[i], ' ');
-  Writeln;
+  WriteLn(myTextFile, 'Total Search Operations: ', m);
+  WriteLn(myTextFile, '==========================');
+  WriteLn(myTextFile, 'Search Results:');
+  WriteLn(myTextFile, '---------------');
 
-  if range[1] <> -1 then
-    Writeln('Key found at indices: [', range[1], ', ', range[2], ']')
-  else
-    Writeln('Key not found.');
+  for i := 0 to Length(keys) - 1 do
+  begin
+    result[0] := -1;
+    result[1] := -1;
+    recLineSearch(myarray, keys[i], 0, result);
+    recBinSearch(myarray, keys[i], 0, Length(myarray) - 1, result);
+    if result[0] = -1 then
+      WriteLn(myTextFile, 'Key ', keys[i], ': Not found')
+    else
+      WriteLn(myTextFile, 'Key ', keys[i], ': Found in range [', result[0], ', ', result[1], ']');
+  end;
+  WriteLn(myTextFile, '==========================');
+  WriteLn(myTextFile, 'Time Complexity Analysis:');
+  WriteLn(myTextFile, '-------------------------');
+  WriteLn(myTextFile, 'n: ', SIZE, ' Operations: ', m);
+  Close(myTextFile);
+end;
 
-  Writeln('Results saved to ', OUTPUT_FILE);
+{ Main Program Execution }
+var
+  myarray, keys: IntArray;
+begin
+  m := 0;
+  genKeys(keys, NUMOFKEYS, 500);
+  genArray(myarray, SIZE, 500);
+  SelectionSort(myarray);
+  WriteLn('Array Sorted using Selection Sort:');
+  printArrayToConsole(myarray);
+  writeToFile('arrsearch.txt', keys, myarray);
 end.
